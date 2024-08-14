@@ -10,7 +10,6 @@ on:
 
 jobs:
   purge_containers:
-    runs-on: ubuntu-latest
     name: Purge Containers
-    uses: Soda-Digital/Deployment/.github/workflow-templates/purge-containers@main
+    uses: Soda-Digital/Deployment/.github/workflow-templates/purge-containers.yaml@main
 
