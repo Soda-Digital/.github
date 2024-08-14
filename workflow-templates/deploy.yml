@@ -1,0 +1,87 @@
+name : Deploy
+
+permissions:
+  id-token: write
+  contents: write
+
+on:
+  workflow_call:
+    inputs:
+      containerTag:
+        description: 'GitHub Container Tag'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment Environment'
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      containerTag:
+        description: 'GitHub Container Tag, leave blank to pull latest from previous environment'
+        required: false
+        type: string
+      environment:
+        description: 'Deployment Environment'
+        type: environment
+        required: true
+
+jobs:
+
+  copyTag:
+    name: Copy Tag
+    runs-on: ubuntu-latest
+    outputs:
+      previousEnvironment: ${{ steps.environments.outputs.PREVENV }}
+      targetEnvironment: ${{ steps.environments.outputs.TARGETENV }}
+      containerTag: ${{ steps.getContainerTag.outputs.CONTAINERTAG }}
+    steps:
+      - name: Determine Environments
+        id: environments
+        run: |
+          if [ "${{ inputs.environment}}" = "Production" ]; then
+            PREVENV=uat
+          else
+            PREVENV=dev
+          fi
+          echo "Previous environment is $PREVENV"
+          TARGETENV=${{ inputs.environment }}
+          echo "Target environment is $TARGETENV"
+          echo "PREVENV=$PREVENV" >> $GITHUB_OUTPUT
+          echo "TARGETENV=${TARGETENV,,}" >> $GITHUB_OUTPUT
+      - name: "Azure Login"
+
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID}}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: ACR Login
+        run: az acr login --name ${{ vars.AZURE_CONTAINER_REGISTRY }}
+      - name: Get Container Tag
+        id: getContainerTag
+        run: |
+          if [ -z "${{ inputs.containerTag }}" ]; then
+            echo "No container tag provided, pulling latest from ${{ steps.environments.outputs.PREVENV }}"
+            CONTAINERTAG=$(az acr repository show-tags --name ${{ vars.AZURE_CONTAINER_REGISTRY }} --repository ${{ steps.environments.outputs.PREVENV }}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }} --orderby time_desc --top 1 --output tsv)
+          else
+            CONTAINERTAG="${{ inputs.containerTag }}"
+          fi
+          echo "CONTAINERTAG=$CONTAINERTAG" >> $GITHUB_OUTPUT
+      - name: ACR Copy Tag
+        if: ${{ inputs.environment != 'Dev' }}
+        run: |
+          az acr import --name ${{ vars.AZURE_CONTAINER_REGISTRY }} \
+          --source ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ steps.environments.outputs.PREVENV}}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ steps.getContainerTag.outputs.CONTAINERTAG }} \
+          --image ${{ steps.environments.outputs.TARGETENV }}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ steps.getContainerTag.outputs.CONTAINERTAG }} \
+          --force
+  deployment:
+    concurrency: ${{ vars.AZURE_CONTAINER_REGISTRY }} ${{ vars.AZURE_CONTAINER_IMAGE_NAME }}
+    needs: copyTag
+    name: Deploy to ${{ inputs.environment}}
+    uses: Soda-Digital/Deployment/.github/workflows/deploy-azurecontainerapps.yaml@main
+    with:
+      containertag: ${{ needs.copyTag.outputs.containerTag }}
+      environment: ${{ inputs.environment}}
+      containerImageName: ${{ needs.copyTag.outputs.targetEnvironment }}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}
+    secrets: inherit
