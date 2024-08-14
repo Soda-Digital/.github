@@ -1,5 +1,5 @@
 {
-    "name": "Standard Build Workflow",
-    "description": "Used for building and pushing .NET based container images",
-    "iconName": "list-ordered"
+	"name": "Standard Build Workflow",
+	"description": "Used for building and pushing .NET based container images",
+	"iconName": "octicon  list-ordered"
 }

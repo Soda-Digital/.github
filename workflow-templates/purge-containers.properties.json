@@ -1,5 +1,5 @@
 {
     "name": "Standard Purge Containers Workflow",
     "description": "Used for removing stale images from container registry",
-    "iconName": "repo-delete"
+    "iconName": "octicon  repo-delete"
 }
