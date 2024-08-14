@@ -11,5 +11,5 @@ on:
 jobs:
   purge_containers:
     name: Purge Containers
-    uses: Soda-Digital/Deployment/.github/workflow-templates/purge-containers.yaml@main
+    uses: Soda-Digital/Deployment/.github/workflows/purge-containers.yaml@main
 
