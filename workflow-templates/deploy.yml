@@ -27,7 +27,6 @@ on:
         required: true
 
 jobs:
-
   copyTag:
     name: Copy Tag
     runs-on: ubuntu-latest

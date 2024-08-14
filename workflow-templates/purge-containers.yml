@@ -9,7 +9,7 @@ on:
     - cron: '0 0 * * 3'  # Run every wednesday at midnight
 
 jobs:
-  purge_dev_containers:
+  purge_containers:
     runs-on: ubuntu-latest
     name: Purge Dev Containers
     steps:
