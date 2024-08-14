@@ -1,0 +1,5 @@
+{
+    "name": "Standard Deploy Workflow",
+    "description": "Used for explicitly deploying container images to ACA",
+    "iconName": "server"
+}
