@@ -33,6 +33,12 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{env.dotnet-version }}
+    #   Uncomment if you need aspire
+    # - name: Install workloads
+    #   run: dotnet workload install aspire
+    #   Uncomment if you need to add a GitHub source
+    # - name: Add GitHub Sources
+    #   run: dotnet nuget add source https://nuget.pkg.github.com/soda-digital/index.json --name GitHub --username Soda-Digital --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text
     - name: Build Project
       working-directory: ${{env.WorkingDirectory}}
       run: dotnet build --configuration ${{ env.BuildConfiguration }}
