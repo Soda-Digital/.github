@@ -74,6 +74,13 @@ jobs:
           --source ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ steps.environments.outputs.PREVENV}}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ steps.getContainerTag.outputs.CONTAINERTAG }} \
           --image ${{ steps.environments.outputs.TARGETENV }}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ steps.getContainerTag.outputs.CONTAINERTAG }} \
           --force
+      - name: ACR Copy Tag (Latest)
+        if: ${{ inputs.environment != 'Dev' }}
+        run: |
+          az acr import --name ${{ vars.AZURE_CONTAINER_REGISTRY }} \
+          --source ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ steps.environments.outputs.PREVENV}}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ steps.getContainerTag.outputs.CONTAINERTAG }} \
+          --image ${{ steps.environments.outputs.TARGETENV }}/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:latest \
+          --force          
   deployment:
     concurrency: ${{ vars.AZURE_CONTAINER_REGISTRY }} ${{ vars.AZURE_CONTAINER_IMAGE_NAME }}
     needs: copyTag
