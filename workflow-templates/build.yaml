@@ -9,6 +9,7 @@ env:
   BuildConfiguration: Release
   DockerFilePath: ./src/ProjectName/Dockerfile
   DockerContext: ./src
+  # bump this is targetting dotnet 9
   dotnet-version: 8.0.x
   WorkingDirectory: ./src/
 
@@ -73,15 +74,11 @@ jobs:
           push: true
           tags: |
             ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dev/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:${{ github.run_number }}
+            ${{ vars.AZURE_CONTAINER_REGISTRY }}.azurecr.io/dev/${{ vars.AZURE_CONTAINER_IMAGE_NAME }}:latest
           context: ${{ env.DockerContext }}
           file: ${{ env.DockerFilePath }}
           secrets: |
             "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Tag Release
-        run: |
-          git tag ${{ github.run_number }}
-          git push origin ${{ github.run_number }}
 
   devdeploy:
     name: Deploy to Dev
